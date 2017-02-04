@@ -23,6 +23,7 @@ from pypower.loadcase import loadcase
 from pandapower.pypower_extensions.makeBdc import makeBdc
 from pandapower.pypower_extensions.pfsoln import pfsoln
 from pandapower.pypower_extensions.newtonpf import newtonpf
+from pandapower.pypower_extensions.LMpf import LMpf
 from pandapower.pypower_extensions.dcpf import dcpf
 from pandapower.pypower_extensions.bustypes import bustypes
 from pypower.printpf import printpf
@@ -186,6 +187,8 @@ def _runpf(casedata=None, init='flat', ac=True, numba=True, recycle=None, ppopt=
                 V, success, _ = fdpf(Ybus, Sbus, V0, Bp, Bpp, ref, pv, pq, ppopt)
             elif alg == 4:
                 V, success, _ = gausspf(Ybus, Sbus, V0, ref, pv, pq, ppopt)
+            elif alg == 5:
+                V, success, _ = LMpf(Ybus, Sbus, V0, ref, pv, pq, ppopt)
             else:
                 raise ValueError('Only Newton''s method, fast-decoupled, and '
                              'Gauss-Seidel power flow algorithms currently '
@@ -288,5 +291,4 @@ def _runpf(casedata=None, init='flat', ac=True, numba=True, recycle=None, ppopt=
          printpf(results,stdout,ppopt)
     return results, success
 
-if __name__ == '__main__':
-    _runpf()
+
