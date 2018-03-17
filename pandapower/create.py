@@ -854,6 +854,9 @@ def create_storage(net, bus, p_kw, max_e_kwh, q_kvar=0, sn_kva=nan, soc=nan, min
 
         **min_q_kvar** (float, NaN) - Minimum reactive power injection - necessary for a \
             controllable storage in OPF
+            
+        **controllable** (bool, NaN) - Whether this storage is controllable by the optimal
+        powerflow
 
     OUTPUT:
         **index** (int) - The unique ID of the created storage
@@ -884,37 +887,37 @@ def create_storage(net, bus, p_kw, max_e_kwh, q_kvar=0, sn_kva=nan, soc=nan, min
     
     # check for OPF parameters and add columns to network table
     if not isnan(min_p_kw):
-        if "min_p_kw" not in net.sgen.columns:
-            net.sgen.loc[:, "min_p_kw"] = pd.Series()
+        if "min_p_kw" not in net.storage.columns:
+            net.storage.loc[:, "min_p_kw"] = pd.Series()
 
-        net.sgen.loc[index, "min_p_kw"] = float(min_p_kw)
+        net.storage.loc[index, "min_p_kw"] = float(min_p_kw)
 
     if not isnan(max_p_kw):
-        if "max_p_kw" not in net.sgen.columns:
-            net.sgen.loc[:, "max_p_kw"] = pd.Series()
+        if "max_p_kw" not in net.storage.columns:
+            net.storage.loc[:, "max_p_kw"] = pd.Series()
 
-        net.sgen.loc[index, "max_p_kw"] = float(max_p_kw)
+        net.storage.loc[index, "max_p_kw"] = float(max_p_kw)
 
     if not isnan(min_q_kvar):
-        if "min_q_kvar" not in net.sgen.columns:
-            net.sgen.loc[:, "min_q_kvar"] = pd.Series()
+        if "min_q_kvar" not in net.storage.columns:
+            net.storage.loc[:, "min_q_kvar"] = pd.Series()
 
-        net.sgen.loc[index, "min_q_kvar"] = float(min_q_kvar)
+        net.storage.loc[index, "min_q_kvar"] = float(min_q_kvar)
 
     if not isnan(max_q_kvar):
-        if "max_q_kvar" not in net.sgen.columns:
-            net.sgen.loc[:, "max_q_kvar"] = pd.Series()
+        if "max_q_kvar" not in net.storage.columns:
+            net.storage.loc[:, "max_q_kvar"] = pd.Series()
 
-        net.sgen.loc[index, "max_q_kvar"] = float(max_q_kvar)
+        net.storage.loc[index, "max_q_kvar"] = float(max_q_kvar)
 
     if not isnan(controllable):
-        if "controllable" not in net.sgen.columns:
-            net.sgen.loc[:, "controllable"] = pd.Series()
+        if "controllable" not in net.storage.columns:
+            net.storage.loc[:, "controllable"] = pd.Series()
 
-        net.sgen.loc[index, "controllable"] = bool(controllable)
+        net.storage.loc[index, "controllable"] = bool(controllable)
     else:
-        if "controllable" in net.sgen.columns:
-            net.sgen.loc[index, "controllable"] = False
+        if "controllable" in net.storage.columns:
+            net.storage.loc[index, "controllable"] = False
 
     return index
 
@@ -1459,13 +1462,13 @@ def create_transformer(net, hv_bus, lv_bus, std_type, name=None, tp_pos=nan, in_
         "i0_percent": ti["i0_percent"],
         "parallel": parallel,
         "df": df,
-        "shift_degree": ti["shift_degree"] if "shift_degree" in ti else 0
+        "shift_degree": ti["shift_degree"] if "shift_degree" in ti else 0,
+        "tp_phase_shifter": ti["tp_phase_shifter"] if "tp_phase_shifter" in ti
+                            and pd.notnull(ti["tp_phase_shifter"]) else False
     })
-    for tp in ("tp_mid", "tp_max", "tp_min", "tp_side", "tp_st_percent", "tp_st_degree",
-               "tp_phase_shifter"):
+    for tp in ("tp_mid", "tp_max", "tp_min", "tp_side", "tp_st_percent", "tp_st_degree"):
         if tp in ti:
             v.update({tp: ti[tp]})
-
     if ("tp_mid" in v) and (tp_pos is nan):
         v["tp_pos"] = v["tp_mid"]
     else:
